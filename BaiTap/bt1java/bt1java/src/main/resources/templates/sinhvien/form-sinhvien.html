@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Form Sinh Viên</title>
+</head>
+<body>
+<section layout:fragment="content">
+    <h1>Form Nhập Thông Tin Sinh Viên</h1>
+    <form th:action="@{/sinhvien}" th:object="${sinhVien}" method="post" class="needs-validation" novalidate>
+        <div class="mb-3">
+            <label for="ten" class="form-label">Tên:</label>
+            <input type="text" th:field="*{ten}" class="form-control" id="ten" />
+            <div class="text-danger" th:if="${#fields.hasErrors('ten')}" th:errors="*{ten}"></div>
+        </div>
+
+        <div class="mb-3">
+            <label for="tuoi" class="form-label">Tuổi:</label>
+            <input type="text" th:field="*{tuoi}" class="form-control" id="tuoi" />
+            <div class="text-danger" th:if="${#fields.hasErrors('tuoi')}" th:errors="*{tuoi}"></div>
+        </div>
+
+        <div class="mb-3">
+            <label for="khoa" class="form-label">Khoa:</label>
+            <input type="text" th:field="*{khoa}" class="form-control" id="khoa" />
+            <div class="text-danger" th:if="${#fields.hasErrors('khoa')}" th:errors="*{khoa}"></div>
+        </div>
+
+        <div class="mb-3">
+            <label for="diaChi" class="form-label">Địa chỉ:</label>
+            <input type="text" th:field="*{diaChi}" class="form-control" id="diaChi" />
+            <div class="text-danger" th:if="${#fields.hasErrors('diaChi')}" th:errors="*{diaChi}"></div>
+        </div>
+
+        <div class="mb-3">
+            <label for="soDienThoai" class="form-label">Số điện thoại:</label>
+            <input type="tel" th:field="*{soDienThoai}" class="form-control" id="soDienThoai" />
+            <div class="text-danger" th:if="${#fields.hasErrors('soDienThoai')}" th:errors="*{soDienThoai}"></div>
+        </div>
+
+        <div class="mb-3">
+            <label for="anhDaiDien" class="form-label">Ảnh đại diện (URL):</label>
+            <input type="text" th:field="*{anhDaiDien}" class="form-control" id="anhDaiDien" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+</section>
+</body>
+</html>
