@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout-api}">
+<head>
+    <title>Cập Nhật Sản Phẩm</title>
+</head>
+<body>
+<section layout:fragment="content">
+    <div class="card card-custom">
+        <div class="card-body">
+            <h2 class="card-title mb-4">Chỉnh Sửa Sản Phẩm</h2>
+            <form id="updateProductForm" th:object="${product}">
+                <input type="hidden" id="productId" th:field="*{id}">
+                <div class="mb-3">
+                    <label for="name" class="form-label">Tên sản phẩm:</label>
+                    <input type="text" class="form-control" id="name" th:field="*{name}" required>
+                </div>
+                <div class="mb-3">
+                    <label for="price" class="form-label">Giá:</label>
+                    <input type="number" class="form-control" id="price" th:field="*{price}" required>
+                </div>
+                <div class="mb-3">
+                    <label for="description" class="form-label">Mô tả:</label>
+                    <textarea class="form-control" id="description" th:field="*{description}"></textarea>
+                </div>
+                <div class="mb-3">
+                    <label for="category" class="form-label">Danh mục:</label>
+                    <select class="form-select" id="category" th:field="*{category.id}" required>
+                        <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}"></option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Cập Nhật</button>
+                <a th:href="@{/products}" class="btn btn-secondary">Quay Lại</a>
+            </form>
+        </div>
+    </div>
+</section>
+
+<th:block layout:fragment="scripts">
+    <script>
+        $(document).ready(function() {
+            $('#updateProductForm').on('submit', function(e) {
+                e.preventDefault();
+
+                const productId = $('#productId').val();
+                const productData = {
+                    id: productId,
+                    name: $('#name').val(),
+                    price: $('#price').val(),
+                    description: $('#description').val(),
+                    category: {
+                        id: $('#category').val()
+                    }
+                };
+
+                $.ajax({
+                    url: '/api/products/' + productId,
+                    type: 'PUT',
+                    contentType: 'application/json',
+                    data: JSON.stringify(productData),
+                    success: function() {
+                        window.location.href = '/products';
+                    },
+                    error: function() {
+                        alert("Đã có lỗi xảy ra khi cập nhật sản phẩm!");
+                    }
+                });
+            });
+        });
+    </script>
+</th:block>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout-api}">
+<head>
+    <title>Thêm Danh Mục</title>
+</head>
+<body>
+<section layout:fragment="content">
+    <div class="card card-custom">
+        <div class="card-body">
+            <h2 class="card-title mb-4">Thêm Danh Mục Mới</h2>
+            <form id="addCategoryForm" th:object="${category}">
+                <div class="mb-3">
+                    <label for="name" class="form-label">Tên danh mục:</label>
+                    <input type="text" class="form-control" id="name" th:field="*{name}" required>
+                </div>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Lưu</button>
+                <a th:href="@{/categories}" class="btn btn-secondary">Quay Lại</a>
+            </form>
+        </div>
+    </div>
+</section>
+
+<th:block layout:fragment="scripts">
+    <script>
+        $(document).ready(function() {
+            $('#addCategoryForm').on('submit', function(e) {
+                e.preventDefault();
+                const categoryData = { name: $('#name').val() };
+                $.ajax({
+                    url: '/api/categories',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(categoryData),
+                    success: function() { window.location.href = '/categories'; },
+                    error: function() { alert("Đã có lỗi xảy ra!"); }
+                });
+            });
+        });
+    </script>
+</th:block>
+</body>
+</html>
