@@ -68,7 +68,7 @@ public class SecurityConfig {
                 .formLogin(formLogin -> formLogin
                         .loginPage("/login") // Trang đăng nhập tùy chỉnh
                         .loginProcessingUrl("/login") // URL xử lý form đăng nhập
-                        .defaultSuccessUrl("/") // Chuyển hướng về trang chủ sau khi đăng nhập thành công
+                        .defaultSuccessUrl("/products") // Chuyển hướng về trang chủ sau khi đăng nhập thành công
                         .failureUrl("/login?error") // Chuyển hướng về trang login với tham số lỗi
                         .permitAll()
                 )

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout-api}">
+<head>
+    <title>Quản Lý Người Dùng</title>
+</head>
+<body>
+<section layout:fragment="content">
+    <div class="card card-custom">
+        <div class="card-body">
+            <h2 class="card-title mb-4">Quản Lý Người Dùng</h2>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Vai trò</th>
+                        <th class="text-center">Hành Động</th>
+                    </tr>
+                    </thead>
+                    <tbody id="userList"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+
+<th:block layout:fragment="scripts">
+    <script>
+        $(document).ready(function() {
+            loadUsers();
+        });
+
+        function loadUsers() {
+            $('#userList').html('<tr><td colspan="5" class="text-center"><div class="spinner-border"></div></td></tr>');
+            $.ajax({
+                url: '/api/users',
+                type: 'GET',
+                success: function(users) {
+                    let list = '';
+                    users.forEach(user => {
+                        let roles = user.roles.map(role => `<span class="badge bg-primary me-1">${role.name}</span>`).join('');
+                        list += `<tr>
+                            <td>${user.id}</td>
+                            <td>${user.username}</td>
+                            <td>${user.email}</td>
+                            <td>${roles}</td>
+                            <td class="text-center">
+                                <button onclick="deleteUser(${user.id})" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i> Xóa</button>
+                            </td>
+                        </tr>`;
+                    });
+                    $('#userList').html(list);
+                }
+            });
+        }
+
+        function deleteUser(id) {
+            if (confirm('Bạn có chắc chắn muốn xóa người dùng này không?')) {
+                $.ajax({
+                    url: '/api/users/' + id,
+                    type: 'DELETE',
+                    success: function() { loadUsers(); },
+                    error: function() { alert("Không thể xóa người dùng này."); }
+                });
+            }
+        }
+    </script>
+</th:block>
+</body>
+</html>

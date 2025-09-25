@@ -30,9 +30,8 @@ public class UserController {
     @PostMapping("/register")
     public String register(@Valid @ModelAttribute("user") User user, // Validate đối tượng User
 
-
-                           @NotNull BindingResult bindingResult, // Kết quả của qu trình validate
- Model model) {
+    @NotNull BindingResult bindingResult, // Kết quả của qu trình validate
+    Model model) {
         if (bindingResult.hasErrors()) { // Kiểm tra nếu có lỗi validate
             var errors = bindingResult.getAllErrors()
                     .stream()
