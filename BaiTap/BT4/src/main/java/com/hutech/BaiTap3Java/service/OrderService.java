@@ -5,46 +5,47 @@ import com.hutech.BaiTap3Java.model.Order;
 import com.hutech.BaiTap3Java.model.OrderDetail;
 import com.hutech.BaiTap3Java.repository.OrderDetailRepository;
 import com.hutech.BaiTap3Java.repository.OrderRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
-@Transactional
 public class OrderService {
 
     @Autowired
     private OrderRepository orderRepository;
 
     @Autowired
-    private OrderDetailRepository orderDetailRepository;
+    private OrderDetailRepository orderDetailRepository; // <-- Nên inject OrderDetailRepository
 
-    @Autowired
-    private CartService cartService;
+    @Transactional // Đảm bảo tất cả các thao tác đều thành công hoặc không có gì cả
+    public Order createOrder(Order order, List<CartItem> cartItems) {
 
-    // Tạo đơn hàng từ giỏ hàng
-    public Order createOrder(String customerName, List<CartItem> cartItems) {
-        // Tạo đơn hàng mới
-        Order order = new Order();
-        order.setCustomerName(customerName);
-        order = orderRepository.save(order);
+        // Tính toán tổng giá trị đơn hàng
+        BigDecimal totalPrice = cartItems.stream()
+                .map(item -> item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // Tạo chi tiết đơn hàng từ từng mục trong giỏ
+        // Gán các giá trị đã được tính toán hoặc mặc định cho Order
+        order.setTotalPrice(totalPrice);
+        // Các giá trị mặc định như orderDate và status đã được xử lý bằng @PrePersist trong Entity
+
+        // Lưu Order vào DB để lấy ID, cần thiết cho OrderDetail
+        Order savedOrder = orderRepository.save(order);
+
+        // Tạo và lưu các chi tiết đơn hàng (OrderDetail)
         for (CartItem item : cartItems) {
             OrderDetail detail = new OrderDetail();
-            detail.setOrder(order);
+            detail.setOrder(savedOrder);
             detail.setProduct(item.getProduct());
             detail.setQuantity(item.getQuantity());
-            orderDetailRepository.save(detail);
+            detail.setPrice(item.getPrice());
+            orderDetailRepository.save(detail); // Lưu từng chi tiết
         }
 
-        // Xóa giỏ hàng sau khi đặt hàng
-        cartService.clearCart();
-
-        return order;
+        return savedOrder;
     }
 }
