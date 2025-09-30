@@ -3,7 +3,7 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout}">
 <head>
-    <title th:text="${title} ?: 'Your Cart'">Giỏ hàng - Web Bán Hàng</title>
+    <title>Giỏ hàng - Web Bán Hàng</title>
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 </head>
@@ -11,11 +11,11 @@
 <section layout:fragment="content" class="container mt-4">
     <h1 class="mb-4">🛒 Giỏ hàng của bạn</h1>
 
-    <div th:if="${cartItems.isEmpty()}" class="alert alert-info">
+    <div id="cart-empty" class="alert alert-info" style="display: none;">
         Giỏ hàng của bạn đang trống.
     </div>
 
-    <div th:unless="${cartItems.isEmpty()}">
+    <div id="cart-container" style="display: none;">
         <table class="table table-bordered align-middle">
             <thead class="table-light">
             <tr>
@@ -26,39 +26,111 @@
                 <th style="width: 100px;">🛠️</th>
             </tr>
             </thead>
-            <tbody>
-            <tr th:each="item : ${cartItems}">
-                <td th:text="${item.product.name}">Tên sản phẩm</td>
-                <td>
-                    <form th:action="@{/cart/update}" method="post">
-                        <input type="hidden" name="productId" th:value="${item.product.id}" />
-                        <input type="number" name="quantity" th:value="${item.quantity}"
-                               min="1" class="form-control" onchange="this.form.submit()" />
-                    </form>
-                </td>
-                <td th:text="${#numbers.formatDecimal(item.product.price, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'">Đơn giá</td>
-                <td th:text="${#numbers.formatDecimal(item.product.price * item.quantity, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'">Thành tiền</td>
-                <td>
-                    <a th:href="@{/cart/remove/{productId}(productId=${item.product.id})}"
-                       class="btn btn-danger btn-sm">Xóa</a>
-                </td>
-            </tr>
+            <tbody id="cart-items-body">
             </tbody>
         </table>
 
         <div class="text-end mt-4">
-            <h4>Tổng số lượng: <span th:text="${sumQuantity}">0</span></h4>
-            <h3>Tổng tiền: <span class="text-danger" th:text="${#numbers.formatDecimal(sumPrice, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'">0 VNĐ</span></h3>
+            <h4>Tổng số lượng: <span id="total-quantity">0</span></h4>
+            <h3>Tổng tiền: <span class="text-danger" id="total-price">0 VNĐ</span></h3>
         </div>
 
         <div class="mt-4 d-flex justify-content-between">
             <a th:href="@{/products}" class="btn btn-info">Tiếp tục mua hàng</a>
             <div>
-                <a th:href="@{/cart/clear}" class="btn btn-secondary me-2">Làm sạch giỏ hàng</a>
+                <button onclick="clearCart()" class="btn btn-secondary me-2">Làm sạch giỏ hàng</button>
                 <a th:href="@{/order/checkout}" class="btn btn-primary">Thanh toán</a>
             </div>
         </div>
     </div>
 </section>
+
+<th:block layout:fragment="scripts">
+    <script>
+        // Hàm định dạng số
+        function formatNumber(num) {
+            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(num);
+        }
+
+        // Tải và hiển thị giỏ hàng
+        function loadCart() {
+            $.ajax({
+                url: '/api/cart/details',
+                type: 'GET',
+                success: function(response) {
+                    const { cartItems, sumPrice, sumQuantity } = response;
+                    const cartBody = $('#cart-items-body');
+                    cartBody.empty();
+
+                    if (cartItems.length === 0) {
+                        $('#cart-container').hide();
+                        $('#cart-empty').show();
+                    } else {
+                        $('#cart-container').show();
+                        $('#cart-empty').hide();
+
+                        cartItems.forEach(item => {
+                            const row = `<tr>
+                                <td>${item.product.name}</td>
+                                <td>
+                                    <input type="number" value="${item.quantity}" min="1" class="form-control"
+                                           onchange="updateQuantity(${item.product.id}, this.value)" />
+                                </td>
+                                <td>${formatNumber(item.product.price)}</td>
+                                <td>${formatNumber(item.product.price * item.quantity)}</td>
+                                <td>
+                                    <button onclick="removeFromCart(${item.product.id})" class="btn btn-danger btn-sm">Xóa</button>
+                                </td>
+                            </tr>`;
+                            cartBody.append(row);
+                        });
+
+                        $('#total-quantity').text(sumQuantity);
+                        $('#total-price').text(formatNumber(sumPrice));
+                    }
+                }
+            });
+        }
+
+        // Cập nhật số lượng
+        function updateQuantity(productId, quantity) {
+            $.ajax({
+                url: '/api/cart/update',
+                type: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify({ productId: productId, quantity: parseInt(quantity) }),
+                success: function() { loadCart(); } // Tải lại giỏ hàng để cập nhật
+            });
+        }
+
+        // Xóa sản phẩm
+        function removeFromCart(productId) {
+            if (confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')) {
+                $.ajax({
+                    url: '/api/cart/remove/' + productId,
+                    type: 'DELETE',
+                    success: function() { loadCart(); }
+                });
+            }
+        }
+
+        // Xóa toàn bộ giỏ hàng
+        function clearCart() {
+            if (confirm('Bạn có chắc chắn muốn làm sạch giỏ hàng?')) {
+                $.ajax({
+                    url: '/api/cart/clear',
+                    type: 'DELETE',
+                    success: function() { loadCart(); }
+                });
+            }
+        }
+
+        // Tải giỏ hàng khi trang được mở
+        $(document).ready(function() {
+            loadCart();
+        });
+    </script>
+</th:block>
+
 </body>
 </html>

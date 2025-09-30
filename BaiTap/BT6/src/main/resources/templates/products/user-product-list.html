@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Danh sách Sản phẩm</title>
+</head>
+<body>
+<section layout:fragment="content">
+    <div class="container">
+        <h1 class="my-4 text-center">Sản Phẩm Nổi Bật</h1>
+        <div class="row">
+            <div th:each="product : ${products}" class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                <div class="card h-100 product-card">
+                    <img th:src="${product.imageUrl != null ? product.imageUrl : '/images/placeholder.png'}"
+                         class="card-img-top"
+                         alt="Ảnh sản phẩm"
+                         style="height: 200px; width: auto; object-fit: contain ;"
+                         onerror="this.onerror=null;this.src='/images/placeholder.png';">
+
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title" th:text="${product.name}">Tên sản phẩm</h5>
+                        <p class="card-text text-danger fs-5 fw-bold" th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'">Giá</p>
+                        <button th:attr="onclick=|addToCart(${product.id})|" class="btn btn-primary mt-auto">
+                            <i class="fas fa-cart-plus"></i> Thêm vào giỏ
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<th:block layout:fragment="scripts">
+    <script>
+        function addToCart(productId) {
+            $.ajax({
+                url: '/api/cart/add',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ productId: productId, quantity: 1 }),
+                success: function() {
+                    alert('Đã thêm sản phẩm vào giỏ hàng!');
+                    updateCartItemCount(); // Cập nhật số lượng trên icon
+                },
+                error: function() {
+                    alert('Có lỗi xảy ra, vui lòng thử lại.');
+                }
+            });
+        }
+    </script>
+</th:block>
+
+</body>
+</html>

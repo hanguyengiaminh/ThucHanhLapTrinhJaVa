@@ -3,20 +3,52 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout}">
 <head>
-    <title th:text="${title} ?: 'Your Cart'">Place Order</title>
+    <title>Thanh Toán Đơn Hàng</title>
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 </head>
 <body>
 <section layout:fragment="content" class="container mt-3">
-    <h1>Place Your Order</h1>
-    <form th:action="@{/order/submit}" method="post">
+    <h1>Thông Tin Đặt Hàng</h1>
+    <form id="checkoutForm">
         <div class="mb-3">
-            <label for="customerName" class="form-label">Your Name:</label>
-            <input type="text" id="customerName" name="customerName" class="formcontrol" required>
+            <label for="customerName" class="form-label">Tên của bạn:</label>
+            <input type="text" id="customerName" name="customerName" class="form-control" required>
         </div>
-        <button type="submit" class="btn btn-primary">Submit Order</button>
+        <button type="submit" class="btn btn-primary">Xác Nhận Đặt Hàng</button>
     </form>
 </section>
+
+<th:block layout:fragment="scripts">
+    <script>
+        $(document).ready(function() {
+            $('#checkoutForm').on('submit', function(e) {
+                e.preventDefault(); // Ngăn chặn form submit theo cách truyền thống
+
+                const customerName = $('#customerName').val();
+                if (!customerName) {
+                    alert('Vui lòng nhập tên của bạn.');
+                    return;
+                }
+
+                $.ajax({
+                    url: '/api/orders/submit',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ customerName: customerName }),
+                    success: function() {
+                        // Chuyển hướng đến trang xác nhận khi thành công
+                        window.location.href = '/order/confirmation';
+                    },
+                    error: function(xhr) {
+                        // Hiển thị thông báo lỗi từ server (ví dụ: giỏ hàng trống)
+                        alert("Lỗi: " + xhr.responseText);
+                    }
+                });
+            });
+        });
+    </script>
+</th:block>
+
 </body>
 </html>

@@ -10,7 +10,7 @@
     <div class="card card-custom">
         <div class="card-body">
             <h2 class="card-title mb-4">Thêm Sản Phẩm Mới</h2>
-            <form id="addProductForm" th:object="${product}">
+            <form id="addProductForm" th:object="${product}" enctype="multipart/form-data">
                 <div class="mb-3">
                     <label for="name" class="form-label">Tên sản phẩm:</label>
                     <input type="text" class="form-control" id="name" th:field="*{name}" required>
@@ -23,9 +23,15 @@
                     <label for="description" class="form-label">Mô tả:</label>
                     <textarea class="form-control" id="description" th:field="*{description}"></textarea>
                 </div>
+
+                <div class="mb-3">
+                    <label for="imageFile" class="form-label">Ảnh sản phẩm:</label>
+                    <input type="file" class="form-control" id="imageFile" name="imageFile" accept="image/*">
+                </div>
+
                 <div class="mb-3">
                     <label for="category" class="form-label">Danh mục:</label>
-                    <select class="form-select" id="category" th:field="*{category}" required>
+                    <select class="form-select" id="category" name="category.id" required>
                         <option value="">-- Chọn danh mục --</option>
                         <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}"></option>
                     </select>
@@ -43,20 +49,15 @@
             $('#addProductForm').on('submit', function(e) {
                 e.preventDefault();
 
-                const productData = {
-                    name: $('#name').val(),
-                    price: $('#price').val(),
-                    description: $('#description').val(),
-                    category: {
-                        id: $('#category').val()
-                    }
-                };
+                // SỬA: Sử dụng FormData để gửi cả file và dữ liệu
+                var formData = new FormData(this);
 
                 $.ajax({
                     url: '/api/products',
                     type: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify(productData),
+                    data: formData,
+                    processData: false, // Bắt buộc khi gửi FormData
+                    contentType: false, // Bắt buộc khi gửi FormData
                     success: function() {
                         window.location.href = '/products';
                     },

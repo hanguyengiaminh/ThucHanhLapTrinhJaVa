@@ -57,6 +57,7 @@ public class User implements UserDetails {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
+    @Builder.Default // Thêm dòng này
     private Set<Role> roles = new HashSet<>();
 
     @Override
